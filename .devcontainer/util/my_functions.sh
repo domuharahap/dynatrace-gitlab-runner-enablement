@@ -427,6 +427,67 @@ seedGitlabRepos(){
   printInfo "GitLab seeding complete"
 }
 
+# ----------------------------------------------------------------------
+# SonarQube — install Community Edition via official helm chart
+# ----------------------------------------------------------------------
+SONARQUBE_NAMESPACE="${SONARQUBE_NAMESPACE:-sonarqube}"
+SONARQUBE_MONITORING_PASSCODE="${SONARQUBE_MONITORING_PASSCODE:-dynatr@c3}"
+SONARQUBE_PORT=9000
+
+installSonarqube() {
+  printInfoSection "Installing SonarQube (Community Edition) in namespace '$SONARQUBE_NAMESPACE'"
+
+  helm repo add sonarqube https://SonarSource.github.io/helm-chart-sonarqube >/dev/null
+  helm repo update >/dev/null
+
+  kubectl create namespace "$SONARQUBE_NAMESPACE" 2>/dev/null || true
+
+  helm upgrade --install sonarqube sonarqube/sonarqube \
+    --namespace "$SONARQUBE_NAMESPACE" \
+    --wait --timeout 15m \
+    --set "monitoringPasscode=${SONARQUBE_MONITORING_PASSCODE}" \
+    --set "edition=" \
+    --set "community.enabled=true"
+
+  printInfo "Waiting for SonarQube pods to be ready..."
+  waitForAllReadyPods "$SONARQUBE_NAMESPACE"
+
+  _registerSonarqubeApp
+  printInfo "SonarQube available at: $(getAppURL sonarqube $SONARQUBE_PORT)"
+  printInfo "Default credentials: admin / admin (change on first login)"
+}
+
+uninstallSonarqube() {
+  printInfoSection "Uninstalling SonarQube"
+  pkill -f "kubectl port-forward.*sonarqube.*${SONARQUBE_PORT}" 2>/dev/null || true
+  helm uninstall sonarqube -n "$SONARQUBE_NAMESPACE" 2>/dev/null || true
+  kubectl delete namespace "$SONARQUBE_NAMESPACE" 2>/dev/null || true
+  if [[ -f "$APP_REGISTRY" ]]; then
+    grep -v "^sonarqube|" "$APP_REGISTRY" > "${APP_REGISTRY}.tmp" 2>/dev/null || true
+    mv "${APP_REGISTRY}.tmp" "$APP_REGISTRY" 2>/dev/null || true
+  fi
+}
+
+_registerSonarqubeApp() {
+  # Exposes SonarQube via ingress and a Codespaces port-forward on port 9000.
+  local ip domain ingress_host cs_port
+  ip=$(detectIP)
+  domain="${ip}.${MAGIC_DOMAIN:-sslip.io}"
+  ingress_host="sonarqube.${domain}"
+  cs_port="$SONARQUBE_PORT"
+
+  pkill -f "kubectl port-forward.*sonarqube.*${cs_port}" 2>/dev/null || true
+  nohup kubectl port-forward -n "$SONARQUBE_NAMESPACE" svc/sonarqube-sonarqube \
+    "${cs_port}:9000" --address 0.0.0.0 >/dev/null 2>&1 &
+  printInfo "SonarQube port-forward started on :${cs_port} → sonarqube-sonarqube:9000"
+
+  mkdir -p "$(dirname "$APP_REGISTRY")"
+  grep -v "^sonarqube|" "$APP_REGISTRY" > "${APP_REGISTRY}.tmp" 2>/dev/null || true
+  mv "${APP_REGISTRY}.tmp" "$APP_REGISTRY" 2>/dev/null || true
+  echo "sonarqube|${SONARQUBE_NAMESPACE}|sonarqube-sonarqube|9000|${ingress_host}|${cs_port}|" >> "$APP_REGISTRY"
+  printInfo "SonarQube registered in app registry (ingress: ${ingress_host}, cs-port: ${cs_port})"
+}
+
 
 
 

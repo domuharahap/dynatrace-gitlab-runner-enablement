@@ -23,6 +23,9 @@ installK9s
 # If you want to deploy your own App, just create a function in the functions.sh file and call it here.
 # deployMyCustomApp
 
+# SonarQube Community Edition — install via helm and expose on port 9000:
+#installSonarqube
+
 # dtpay — Java Spring Boot demo app (domuharahap/sampleusecase, image: domuharahap/dtdemo-usecase:2.3)
 # Uncomment to auto-deploy at codespace creation:
 #deployDtpay
