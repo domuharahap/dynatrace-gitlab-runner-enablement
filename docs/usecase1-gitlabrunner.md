@@ -1,5 +1,6 @@
 ## 1. Create first Project in Gitlab
 
+## Pre Requisites
 1. **Log in to the GitLab UI.**
 Create Project
 2. **Generate ssh key in codespace**
@@ -9,19 +10,46 @@ ssh-keygen
 
 get the key generated and copy to Gitlab
 ```
-home/vscode/.ssh/id_<REPLACE_GENERATED_ID>/*.pub
+cat home/vscode/.ssh/*.pub
 ```
 
 3. **Copy the output ssh key into Gitlab SSH key**
+    a. Go User Setting -> Access -> SSH Keys.
+    b. Add new Key -> pass the keygen generated into key input field.
+    c. Add Key to Save
+
+    short just search SSH keys and click.  
 
 4. **Clone the Project created in codespace**
-```
-git clone
-```
+    a. Go to Project FirstPrject and Cliek `+` -> `add New Files`
+    b. copy and save with file name `.gitlab-ci.yaml`
 
-5. **Add my first file into Gitlab projecte**
- 
-``` 
+    ```
+    stage:
+        - build
+        - deploy
+
+        build-job
+        - stage: build
+        - script:
+            - echo "Hello, $USER!"
+            - echo "compile my first project"
+            - echo "compile completed"
+        deploy-job
+        - stage: deploy
+        - script:
+            - echo "Deploying application..."
+            - echo "Application successfully deployed." 
+        ```
+
+Alternatively, you can clone this into your codespace
+1. go to gitlab project -> Code -> Copy Clone with SSH
+2. Go you your codespace run this command clone
+```
+git clone git@gitlab.com:<generatedCode>/firstproject.git
+```
+3. create the new files called .gitlab-ci.yaml
+ ```
 ### Create File
 cat <<EOF > .gitlab-ci.yaml
 # My first Gitlab CI
@@ -67,6 +95,11 @@ sudo gitlab-runner install --user=gitlab-runner --working-directory=/home/gitlab
 sudo gitlab-runner start
 ```
 
+See and validate the pipeline running
+
+
+let run more example
+
 Example 1:
 
 The runner is configured with the tags [docker, shell, codespace].
@@ -80,53 +113,3 @@ Example 3:
 The runner is configured with the tags [docker, shell, codespace].
 The job has the tags [docker, shell, k8s] and is not executed.
 
-## Install SonarQube (Code Quality Gate)
-
-SonarQube Community Edition can be installed into the Kubernetes cluster with a single command using the built-in function.
-
-### Option A — One-command install (recommended)
-
-Run this from the codespace terminal:
-
-```bash
-installSonarqube
-```
-
-This will:
-1. Add the SonarQube helm repo and update it
-2. Create the `sonarqube` namespace
-3. Deploy SonarQube Community Edition via helm
-4. Wait for all pods to be ready
-5. Start a port-forward on **port 9000** so the UI is accessible
-
-The URL is printed at the end. Default credentials: **admin / admin** (change on first login).
-
-### Option B — Manual steps
-
-```bash
-# Add and update the helm repo
-helm repo add sonarqube https://SonarSource.github.io/helm-chart-sonarqube
-helm repo update
-
-# Create namespace
-kubectl create namespace sonarqube
-
-# Install SonarQube Community Edition
-helm upgrade --install sonarqube sonarqube/sonarqube \
-  --namespace sonarqube \
-  --wait --timeout 15m \
-  --set monitoringPasscode="dynatr@c3" \
-  --set edition="" \
-  --set community.enabled=true
-
-# Expose SonarQube on port 9000 (run in background)
-kubectl port-forward -n sonarqube svc/sonarqube-sonarqube 9000:9000 --address 0.0.0.0 &
-```
-
-SonarQube will be available at `http://localhost:9000` (or the codespace forwarded URL on port 9000).
-
-### Uninstall
-
-```bash
-uninstallSonarqube
-```
