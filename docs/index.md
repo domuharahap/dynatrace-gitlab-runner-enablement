@@ -1,18 +1,18 @@
 --8<-- "snippets/dt-enablement.md"
 
-# dtpay — Payment Observability Workshop
+# GitLab CI + Dynatrace — Hands-On Enablement
 
 !!! example ""
     ![Workshop Banner](img/framework_banner.png){ align=center }
 
 ## About this Workshop
 
-This hands-on workshop demonstrates how to use **Apache JMeter** and **Dynatrace** together to observe, analyze, and automate performance testing of the **dtpay** payment application — a Kubernetes-native Spring Boot + React demo app.
+This hands-on workshop teaches you how to build a complete CI/CD pipeline with **GitLab CI** and observe it with **Dynatrace** — starting from an empty GitLab.com account and ending with a Node.js application that builds, tests, scans, containerizes, and deploys itself to Kubernetes, gated by automated quality and load-test checks.
 
-You will progressively add deeper Dynatrace integration across four JMeter versions, from basic APM traces all the way to real-time Business Event streaming during a live load test.
+Everything runs inside a single **GitHub Codespace**: the Kubernetes cluster (k3d), the GitLab Runner, SonarQube, and the Dynatrace OneAgent all live in the same container — there is nothing to install on your laptop.
 
 !!! info "Source Repository"
-    [:material-github: github.com/domuharahap/dynatrace-jmeter-enablement](https://github.com/domuharahap/dynatrace-jmeter-enablement)
+    [:material-github: github.com/domuharahap/dynatrace-gitlab-runner-enablement](https://github.com/domuharahap/dynatrace-gitlab-runner-enablement)
 
 ---
 
@@ -20,37 +20,42 @@ You will progressively add deeper Dynatrace integration across four JMeter versi
 
 By the end of this workshop you will be able to:
 
-- [x] Deploy **dtpay**, a Kubernetes-native payment demo app, and explore its architecture
-- [x] Run **JMeter load tests** as Kubernetes Jobs with zero local setup
-- [x] View distributed traces and APM data for load-test traffic in **Dynatrace**
-- [x] Tag load-test traffic with `x-dynatrace-test` headers to **isolate test vs. real-user traffic**
-- [x] Publish **BizEvents** at test start and end with full performance summary stats
-- [x] Stream **live incremental BizEvents** every 30 seconds for a real-time Dynatrace dashboard
+- [x] Create a **GitLab.com** project and connect it to your Codespace over SSH
+- [x] Install and register a **GitLab Runner** by hand, and reason about executor types and tags
+- [x] Build, test, and lint a **Node.js** application (`kkm-pulse-demo`) in a real pipeline
+- [x] Add **SAST** and **SonarQube** static analysis quality gates to the pipeline
+- [x] Build a **Docker image** in CI and load it into the local Kubernetes cluster (no registry needed)
+- [x] Deploy the application to Kubernetes from GitLab CI and reach it from a browser
+- [x] Send **Dynatrace deployment events** and load-test results from the pipeline via the Events API v2
+- [x] Split the pipeline into **dev** and **prod** stages with an automated gate that blocks a bad build from reaching production
 
 ---
 
-## JMeter Versions at a Glance
+## The Demo App — `kkm-pulse-demo`
 
-| Version | Image | What's New |
-|---|---|---|
-| `v1.0` | `domuharahap/jmeter-tester:v1.0` | Basic load — results in DT APM traces |
-| `v1.2` | `domuharahap/jmeter-tester:v1.2` | Adds `x-dynatrace-test` header for test marking |
-| `v1.3` | `domuharahap/jmeter-tester:v1.3` | BizEvents at test start and end with summary stats |
-| `v2.0` | `domuharahap/jmeter-tester:v2.0` | v1.3 + live stats BizEvent every 30 s & extended scenarios |
+A small Express.js app simulating a hospital pulse-monitoring dashboard, used as the workshop's running example across all five use cases:
+
+| Endpoint | Purpose |
+|---|---|
+| `GET /` | Serves the dashboard UI |
+| `GET /api/status` | Returns simulated clinic status JSON |
+| `GET /api/trigger-anomaly` | Spikes CPU for 3s — great for showing Davis AI anomaly detection |
+
+Source lives at [.devcontainer/apps/kkm-pulse-demo](https://github.com/domuharahap/dynatrace-gitlab-runner-enablement/tree/main/.devcontainer/apps/kkm-pulse-demo) inside this repository — you'll push a copy of it to your own GitLab project in Use Case 2.
 
 ---
 
 ## Workshop Structure
 
-| Section | Content |
+| Use Case | Content |
 |---|---|
-| [Getting Started](getting-started.md) | Prerequisites, Codespace launch, port visibility, deploy dtpay |
-| [dtpay — Payment App](dtpay.md) | Architecture, Kubernetes resources, nginx proxy config |
-| [Part 1 — Basic APM Traces](jmeter-v1.0.md) | JMeter v1.0: baseline load test, DT distributed traces |
-| [Part 2 — Test Marking](jmeter-v1.2.md) | JMeter v1.2: `x-dynatrace-test` header, Request Attributes |
-| [Part 3 — BizEvents](jmeter-v1.3.md) | JMeter v1.3: test start & summary BizEvents, DQL |
-| [Part 4 — Live Stats](jmeter-v2.0.md) | JMeter v2.0: rolling stats every 30 s, real-time dashboard |
-| [Cleanup](cleanup.md) | Stop tests and remove workshop resources |
+| [Getting Started](getting-started.md) | Prerequisites, Codespace launch, Dynatrace secrets |
+| [1 — First GitLab Project & Runner](usecase1-gitlabrunner.md) | Create a GitLab.com project, SSH keys, install & register a GitLab Runner |
+| [2 — Node.js CI, Test & SAST](usecase2-nodejs-sast.md) | Push `kkm-pulse-demo`, build/test stages, GitLab SAST, SonarQube quality gate |
+| [3 — Docker Build & Deploy to K8s](usecase3-deployk8s.md) | Build a Docker image in CI, load it into k3d, deploy & expose it |
+| [4 — Dynatrace Events & Load Testing](usecase4-dynatrace.md) | Deploy the OneAgent, send deployment events, run a load test, validate in Dynatrace |
+| [5 — Dev/Prod Gates](usecase5-devprodstages.md) | Separate dev/prod environments, manual approval, stop a bad build automatically |
+| [Cleanup](cleanup.md) | Tear down everything created during the workshop |
 | [Resources](resources.md) | Reference links and further reading |
 
 <div class="grid cards" markdown>

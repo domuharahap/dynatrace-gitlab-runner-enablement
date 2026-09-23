@@ -8,6 +8,17 @@ Below is a curated list of resources to help you get the most out of Dynatrace, 
 
 - [Create a Free Trial in Dynatrace](https://www.dynatrace.com/signup/)
 - [Dynatrace Documentation](https://docs.dynatrace.com)
+- [Events API v2 — POST an event](https://docs.dynatrace.com/docs/shortlink/api-events-v2-post-event)
+
+---
+
+
+### 🦊 GitLab CI/CD
+
+- [GitLab Runner — Register a runner](https://docs.gitlab.com/runner/register/)
+- [`.gitlab-ci.yaml` keyword reference](https://docs.gitlab.com/ee/ci/yaml/)
+- [GitLab SAST](https://docs.gitlab.com/ee/user/application_security/sast/)
+- [SonarQube — SonarScanner CLI](https://docs.sonarsource.com/sonarqube-server/analyzing-source-code/scanners/sonarscanner/)
 
 ---
 
@@ -66,5 +77,5 @@ Explore these resources to become more effective with Dynatrace, Codespaces, and
 
 
 <div class="grid cards" markdown>
-- [Continue to Repositories →](enablements.md)
+- [What's Next →](whats-next.md)
 </div>

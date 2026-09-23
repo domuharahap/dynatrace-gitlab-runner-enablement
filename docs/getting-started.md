@@ -7,6 +7,7 @@
 Before launching the Codespace, ensure you have everything in place.
 
 !!! warning "Requirements"
+    - A **GitLab.com** account — [sign up for free](https://gitlab.com/users/sign_up) if you don't have one
     - A **Dynatrace Platform** environment (SaaS) — [free trial available](https://www.dynatrace.com/signup/)
     - **GitHub Codespaces** access (or a local Dev Container)
     - All **Codespace secrets** populated (see table below)
@@ -17,7 +18,7 @@ Before launching the Codespace, ensure you have everything in place.
 |---|---|
 | `DT_ENVIRONMENT` | Your Dynatrace platform URL, e.g. `https://abc123.apps.dynatrace.com` |
 | `DT_OPERATOR_TOKEN` | Operator token from the DT UI (auto-created when adding a cluster) |
-| `DT_INGEST_TOKEN` | Ingest token for logs, metrics, and traces |
+| `DT_INGEST_TOKEN` | Ingest token for logs, metrics, traces, and **events** |
 
 ---
 
@@ -34,63 +35,55 @@ Before launching the Codespace, ensure you have everything in place.
         | `DT_OPERATOR_TOKEN` | :material-check-circle:{ .green } required |
         | `DT_INGEST_TOKEN` | :material-check-circle:{ .green } required |
 
-    3. Wait for the Codespace to finish initializing — the post-create script installs the Kubernetes cluster, deploys the Dynatrace Operator, and deploys **dtpay** automatically
+    3. Wait for the Codespace to finish initializing — the post-create script starts a local **k3d** Kubernetes cluster and installs `k9s`
     4. Open the **Terminal** panel in VS Code (`View → Open View → Terminal`)
-    5. Verify the cluster and Dynatrace Operator are running:
+    5. Verify the cluster is running:
 
     ```bash
     kubectl get nodes
-    kubectl get pods -n dynatrace
     ```
 
 !!! tip "What the post-create script does"
     The `post-create.sh` script automatically:
 
-    - Creates a K3d Kubernetes cluster
-    - Deploys the Dynatrace Operator via Helm and applies your credentials as a Dynakube
-    - Deploys **dtpay** into the `dtusecase` namespace
+    - Creates a **k3d** Kubernetes cluster named `enablement` (context `k3d-enablement`)
+    - Installs `k9s` for browsing the cluster
     - Exposes the MkDocs documentation on port 8000
 
+    It does **not** install GitLab, SonarQube, or the Dynatrace Operator — you'll install each of those yourself as you work through the use cases, so you understand exactly what each piece does.
+
 ---
 
-## Part 2 — Make Port 80 Public
+## Part 2 — Know Your Forwarded Ports
 
-JMeter runs **inside the cluster** as a Kubernetes Job, so it reaches dtpay via the internal service without going through the Codespaces forwarded URL. However, to verify the dtpay portal is accessible (or to test from Postman), set port 80 to **Public** first.
+The Codespace pre-declares three forwarded ports:
 
-!!! example "Step-by-step"
+| Port | Label | Used for |
+|---|---|---|
+| `80` | Ingress (Applications) | Any app exposed via the in-cluster nginx ingress — this is how you'll reach `kkm-pulse-demo` from your browser starting in Use Case 3 |
+| `8929` | GitLab | Reserved by the framework image; not used in this workshop since we use GitLab.com |
+| `9000` | SonarQube | Reachable once you run `installSonarqube` in Use Case 2 |
 
+!!! example "Making a port public"
     1. Open the **Ports** panel in VS Code (`View → Open View → Ports`)
-    2. Find port **80** — labeled `Ingress (Applications)`
-    3. Right-click → **Port Visibility → Public**
-    4. Click the forwarded URL to confirm the dtpay payment portal loads in your browser
-    5. Copy the URL — it looks like `https://<codespace-name>-80.app.github.dev`
-
-    ![Port 80 public visibility](img/jmeter/v1.0-codespace-config.png)
+    2. Right-click the port → **Port Visibility → Public**
+    3. Click the forwarded URL to open it in your browser — it looks like `https://<codespace-name>-80.app.github.dev`
 
 !!! warning "Revert when done"
-    Set port 80 back to **Private** at the end of the workshop to avoid leaving the ingress publicly exposed.
+    Set ports back to **Private** at the end of the workshop — see [Cleanup](cleanup.md).
 
 ---
 
-## Part 3 — Verify dtpay is Running
+## Part 3 — What You'll Build
 
-Confirm the payment application is deployed and ready before starting JMeter tests.
+Across the five use cases you will:
 
-```bash
-kubectl get all -n dtusecase
-```
-
-You should see the `backend-usecase` and `payment-frontend` deployments in `Running` state.
-
-If dtpay is not yet deployed, run:
-
-```bash
-deployDtpay
-```
-
-!!! tip ""
-    `deployDtpay` creates the `dtusecase` namespace, applies all manifests, waits for pods, and registers the frontend with the ingress — accessible via port 80.
+1. Create a project on **GitLab.com** and install/register your own **GitLab Runner** inside this Codespace (Use Case 1)
+2. Push the `kkm-pulse-demo` Node.js app into that project and build a CI pipeline for it, adding SAST and SonarQube (Use Case 2)
+3. Extend the pipeline to build a Docker image and deploy it to the local k3d cluster (Use Case 3)
+4. Wire the pipeline into Dynatrace — deployment events, a load test, and Davis AI (Use Case 4)
+5. Split the pipeline into dev/prod stages with an automated gate (Use Case 5)
 
 <div class="grid cards" markdown>
-- [Continue to dtpay Architecture :octicons-arrow-right-24:](dtpay.md)
+- [Continue to Use Case 1 — First GitLab Project & Runner :octicons-arrow-right-24:](usecase1-gitlabrunner.md)
 </div>

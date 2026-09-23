@@ -1,17 +1,17 @@
 INHERIT: mkdocs-base.yaml
-site_name: "dtpay — Payment Observability Workshop"
+site_name: "GitLab CI + Dynatrace — Hands-On Enablement"
 repo_name: "View Code on GitHub"
-repo_url: "https://github.com/domuharahap/dynatrace-jmeter-enablement"
+repo_url: "https://github.com/domuharahap/dynatrace-gitlab-runner-enablement"
 nav:
   - 'About': index.md
   - 'Getting Started': getting-started.md
-  - 'dtpay — Payment App': dtpay.md
-  - 'Part 1 — Basic APM Traces': jmeter-v1.0.md
-  - 'Part 2 — Test Marking': jmeter-v1.2.md
-  - 'Part 3 — BizEvents': jmeter-v1.3.md
-  - 'Part 4 — Live Stats': jmeter-v2.0.md
+  - 'Use Case 1 — First GitLab Project & Runner': usecase1-gitlabrunner.md
+  - 'Use Case 2 — Node.js CI, Test & SAST': usecase2-nodejs-sast.md
+  - 'Use Case 3 — Docker Build & Deploy to K8s': usecase3-deployk8s.md
+  - 'Use Case 4 — Dynatrace Events & Load Testing': usecase4-dynatrace.md
+  - 'Use Case 5 — Dev/Prod Gates': usecase5-devprodstages.md
   - 'Cleanup': cleanup.md
   - 'Resources': resources.md
   - "What's Next": whats-next.md
 extra:
-  rum_snippet: "https://js-cdn.dynatrace.com/jstag/1612cf70810/bf81393wlb/ff78563295ff1e42_complete.js"
+  rum_snippet: ""
