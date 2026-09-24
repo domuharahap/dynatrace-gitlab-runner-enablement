@@ -1,0 +1,16 @@
+# Ignore a specific file
+.env
+
+# Ignore a whole folder (like node_modules)
+node_modules/
+test-results/
+
+# Ignore all files with a specific extension
+*.log
+
+# SonarQube scanner cache and CI dotenv artifact
+.sonar/
+loadtest.env
+
+# NOTE: package-lock.json is intentionally tracked — `npm ci` in the
+# pipeline's build-job requires it to be committed.

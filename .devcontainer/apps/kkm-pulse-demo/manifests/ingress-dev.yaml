@@ -1,0 +1,33 @@
+# Dev ingress — includes a catch-all (no host) rule so the Codespaces
+# forwarded port 80 (https://$CODESPACE_NAME-80.app.github.dev) reaches this
+# app directly in a browser. See usecase3-deployk8s.md.
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: kkm-pulse-dev-ingress
+  namespace: kkm-pulse-dev
+  annotations:
+    nginx.ingress.kubernetes.io/proxy-read-timeout: "3600"
+    nginx.ingress.kubernetes.io/proxy-send-timeout: "3600"
+spec:
+  ingressClassName: nginx
+  rules:
+    - host: kkm-pulse-dev.127.0.0.1.sslip.io
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: kkm-pulse-demo
+                port:
+                  number: 3000
+    - http: # catch-all — no host means "match any Host header"
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: kkm-pulse-demo
+                port:
+                  number: 3000

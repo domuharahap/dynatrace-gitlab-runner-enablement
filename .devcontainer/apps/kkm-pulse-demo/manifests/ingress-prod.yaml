@@ -1,0 +1,26 @@
+# Prod ingress — host-only, deliberately WITHOUT a catch-all rule so it never
+# competes with the dev ingress for the Codespaces port-80 forward. Reach it
+# from the terminal with a Host-header curl, e.g.:
+#   curl -H "Host: kkm-pulse-prod.127.0.0.1.sslip.io" http://localhost/api/status
+# See usecase5-devprodstages.md.
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: kkm-pulse-prod-ingress
+  namespace: kkm-pulse-prod
+  annotations:
+    nginx.ingress.kubernetes.io/proxy-read-timeout: "3600"
+    nginx.ingress.kubernetes.io/proxy-send-timeout: "3600"
+spec:
+  ingressClassName: nginx
+  rules:
+    - host: kkm-pulse-prod.127.0.0.1.sslip.io
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: kkm-pulse-demo
+                port:
+                  number: 3000
