@@ -37,6 +37,35 @@ npm start
 
 ---
 
+
+## 2. Connect your Codespace to GitLab over SSH
+
+### Generate an SSH key in the Codespace
+
+```bash
+ssh-keygen -t ed25519 -C "$(git config --global user.email || echo codespace)"
+```
+
+Press **Enter** through the prompts to accept the defaults (no passphrase needed for a throwaway Codespace).
+
+### Copy the public key into GitLab
+
+```bash
+cat ~/.ssh/id_ed25519.pub
+```
+
+1. In GitLab, click your avatar → **Edit profile** → **SSH Keys** (or go directly to **User Settings → SSH Keys**)
+2. Click **Add new key**, paste the output above into **Key**, give it a title, and click **Add key**
+
+### Clone the project into the Codespace
+
+```bash
+git clone git@gitlab.com:<your-gitlab-username>/firstproject.git
+cd firstproject
+```
+
+---
+
 ## 2. Create the project in GitLab and push
 
 !!! example "Step-by-step"
@@ -73,6 +102,33 @@ sudo gitlab-runner register \
   --description "codespace-shell-runner-kkm" \
   --tag-list "shell,docker,codespace"
 ```
+
+
+### Give the runner access to Docker and the cluster
+
+Pipeline jobs will run `docker build` and `kubectl apply` as the `gitlab-runner` Linux user — it needs the same Docker group membership and kubeconfig your own `vscode` user already has.
+
+```bash
+# Let gitlab-runner talk to the Docker socket
+sudo usermod -aG docker gitlab-runner
+
+# Share the kubeconfig so gitlab-runner can reach the k3d-enablement cluster
+sudo mkdir -p /home/gitlab-runner/.kube
+sudo cp ~/.kube/config /home/gitlab-runner/.kube/config
+sudo chown -R gitlab-runner:gitlab-runner /home/gitlab-runner/.kube
+```
+
+### Install and start the runner service
+
+```bash
+sudo gitlab-runner install --user=gitlab-runner --working-directory=/home/gitlab-runner
+sudo gitlab-runner start
+```
+
+!!! tip "Group membership needs a restart"
+    `usermod -aG docker` only takes effect for **new** processes. Since you ran it before `gitlab-runner start`, the service picks it up immediately. If you ever add the group *after* the service is already running, restart it with `sudo gitlab-runner restart`.
+
+---
 
 ---
 
