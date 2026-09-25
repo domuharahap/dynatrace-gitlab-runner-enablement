@@ -10,6 +10,7 @@ nav:
   - 'Use Case 3 — Docker Build & Deploy to K8s': usecase3-deployk8s.md
   - 'Use Case 4 — Dynatrace Events & Load Testing': usecase4-dynatrace.md
   - 'Use Case 5 — Dev/Prod Gates': usecase5-devprodstages.md
+  - 'Use Case 6 — Site Reliability Guardian & Automated Rollback': usecase6-srg-workflow.md
   - 'Cleanup': cleanup.md
   - 'Resources': resources.md
   - "What's Next": whats-next.md

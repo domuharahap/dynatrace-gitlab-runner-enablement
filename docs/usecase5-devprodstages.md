@@ -151,6 +151,8 @@ Across five use cases you took `kkm-pulse-demo` from zero to a pipeline that:
 4. Reports every deployment and load-test result to Dynatrace as an event, and gets validated against Davis AI anomaly detection (Use Case 4)
 5. Separates dev and prod, and structurally cannot promote a build that failed its load test (Use Case 5)
 
+Use Case 6 goes further: Dynatrace's Site Reliability Guardian validates production against KPI and security objectives *after* deployment, and a Dynatrace Workflow automatically calls back the pipeline to trigger a rollback when production degrades.
+
 <div class="grid cards" markdown>
-- [Continue to Cleanup :octicons-arrow-right-24:](cleanup.md)
+- [Continue to Use Case 6 — SRG & Automated Rollback :octicons-arrow-right-24:](usecase6-srg-workflow.md)
 </div>

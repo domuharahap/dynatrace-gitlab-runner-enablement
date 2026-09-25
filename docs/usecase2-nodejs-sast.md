@@ -55,7 +55,7 @@ cat ~/.ssh/id_ed25519.pub
 ```
 
 1. In GitLab, click your avatar → **Edit profile** → **SSH Keys** (or go directly to **User Settings → SSH Keys**)
-2. Click **Add new key**, paste the output above into **Key**, give it a title, and click **Add key**
+2. Click **Add new key**, paste the output above into **Key**, give it a title, change **Expiry Date** and click **Add key**
 
 ### Clone the project into the Codespace
 

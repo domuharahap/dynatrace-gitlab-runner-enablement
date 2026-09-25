@@ -28,12 +28,13 @@ By the end of this workshop you will be able to:
 - [x] Deploy the application to Kubernetes from GitLab CI and reach it from a browser
 - [x] Send **Dynatrace deployment events** and load-test results from the pipeline via the Events API v2
 - [x] Split the pipeline into **dev** and **prod** stages with an automated gate that blocks a bad build from reaching production
+- [x] Validate every production deployment with **Site Reliability Guardian** — KPI and security vulnerability objectives — and auto-rollback via a Dynatrace Workflow if production degrades after the pipeline finishes
 
 ---
 
 ## The Demo App — `kkm-pulse-demo`
 
-A small Express.js app simulating a hospital pulse-monitoring dashboard, used as the workshop's running example across all five use cases:
+A small Express.js app simulating a hospital pulse-monitoring dashboard, used as the workshop's running example across all six use cases:
 
 | Endpoint | Purpose |
 |---|---|
@@ -55,6 +56,7 @@ Source lives at [.devcontainer/apps/kkm-pulse-demo](https://github.com/domuharah
 | [3 — Docker Build & Deploy to K8s](usecase3-deployk8s.md) | Build a Docker image in CI, load it into k3d, deploy & expose it |
 | [4 — Dynatrace Events & Load Testing](usecase4-dynatrace.md) | Deploy the OneAgent, send deployment events, run a load test, validate in Dynatrace |
 | [5 — Dev/Prod Gates](usecase5-devprodstages.md) | Separate dev/prod environments, manual approval, stop a bad build automatically |
+| [6 — Site Reliability Guardian & Automated Rollback](usecase6-srg-workflow.md) | SRG validates prod KPIs and security vulnerabilities; Dynatrace Workflow triggers automatic rollback |
 | [Cleanup](cleanup.md) | Tear down everything created during the workshop |
 | [Resources](resources.md) | Reference links and further reading |
 
