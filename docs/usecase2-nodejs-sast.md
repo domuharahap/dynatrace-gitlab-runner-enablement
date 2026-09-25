@@ -99,10 +99,14 @@ sudo gitlab-runner register \
   --url "https://gitlab.com/" \
   --token "<glrt-...-paste-your-token-here>" \
   --executor "shell" \
-  --description "codespace-shell-runner-kkm" \
-  --tag-list "shell,docker,codespace"
+  --description "codespace-shell-runner-kkm"
 ```
 
+4. Run the gitlab-runer
+
+```
+gitlab-runner run
+```
 
 ### Give the runner access to Docker and the cluster
 
@@ -218,15 +222,31 @@ Port `9000` is already pre-declared in this Codespace (see `devcontainer.json`):
 
 1. Open the **Ports** panel in VS Code
 2. Find port `9000` (labeled `SonarQube`)
-3. Click the globe icon next to it to **Open in Browser** — no need to make it Public, your own authenticated Codespaces session can already reach it
+3. Make it Public, to make the sonar accessible from gitlab
+4. Click the globe icon next to it to **Open in Browser**
 
 Log in with **admin / admin** and set a new password when prompted.
 
-### Generate a token
 
-1. Click your avatar → **My Account → Security**
-2. Under **Generate Tokens**, name it `gitlab-ci`, type **Global Analysis Token**, click **Generate**
+### Configure GitLab and Sonar Token
+
+1. In Sonar Home Page (Projects) Create your pavourite project from DevOps Platform, Click **Setup (Import from Gitlab) → Create Configuration**
+2. Under **Generate Tokens**, name it `kkm-pulse-demo`, type **Gitlab API URL**, paste the **Gitlab Personal Access Token**, and **Save Configuration**
+3. Paste the **Gitlab Persona Access token** again to provide access to the repo
+4. On the Gitlab Project onboarding, select `kkm-pulse-demo → Follow the instance Default  → Analyze with Gitlab CI`
+2. Generate the token on step 1 **Generate Token**, name it `kkm-pulse-demo`, Select **Global Analysis Token**, click **Generate**
 3. Copy the token — it's shown only once
+
+
+### Configure GitLab CI/CD variables
+
+In the `kkm-pulse-demo` project: **Settings → CI/CD → Variables → Add variable**
+
+| Key | Value | Mask? |
+|---|---|---|
+| `SONAR_HOST_URL` | `http://localhost:9000` (the runner and SonarQube share the same Codespace host) | No |
+| `SONAR_TOKEN` | the token you generated above | Yes |
+
 
 ### Install the SonarScanner CLI on the runner host
 
@@ -243,15 +263,6 @@ sudo ln -sf /opt/sonar-scanner-8.1.0.6389-linux-x64/bin/sonar-scanner /usr/local
 
 sonar-scanner -v
 ```
-
-### Configure GitLab CI/CD variables
-
-In the `kkm-pulse-demo` project: **Settings → CI/CD → Variables → Add variable**
-
-| Key | Value | Mask? |
-|---|---|---|
-| `SONAR_HOST_URL` | `http://localhost:9000` (the runner and SonarQube share the same Codespace host) | No |
-| `SONAR_TOKEN` | the token you generated above | Yes |
 
 ### Add the SonarQube stage
 
@@ -294,6 +305,72 @@ git push
 
 1. Watch `sonarqube-check` run in **CI/CD → Pipelines**
 2. Back in the SonarQube UI, open **Projects → kkm-pulse-demo** and confirm the analysis landed with a Quality Gate result
+
+---
+
+## Knowledge Check
+
+### 1. Why does `allow_failure: true` exist — and when should you remove it?
+
+The `sonarqube-check` job has `allow_failure: true`, which means the pipeline always shows green even when SonarQube finds problems.
+
+??? question "Show Answer"
+
+    **Why it's there by default:** When you first wire up SonarQube, the existing codebase almost always has findings (code smells, duplication, low coverage). Setting `allow_failure: true` lets the team see the results without immediately blocking every pipeline and merge request. You get visibility first, then tighten the gate once the baseline is clean.
+
+    **When to remove it:** Once your Quality Gate reflects agreed-upon standards and the existing issues are resolved (or marked "Won't Fix"), flip the flag off so a failing gate actually stops the pipeline.
+
+    **How to enforce it on MRs but stay informational on `main`:**
+
+    ```yaml
+    sonarqube-check:
+      stage: code_quality
+      tags:
+        - shell
+      rules:
+        - if: $CI_PIPELINE_SOURCE == 'merge_request_event'
+          allow_failure: false   # <-- blocks the MR if quality gate fails
+        - if: $CI_COMMIT_BRANCH == 'main'
+          allow_failure: true    # <-- informational only on main
+    ```
+
+    This pattern is the recommended progression: observe → baseline → enforce on new code (MRs) → eventually enforce on `main` too.
+
+---
+
+### 2. Hands-on: Introduce a bug and watch SonarQube catch it
+
+In `server.js`, add the following deliberately insecure snippet just before the `module.exports` line — this simulates a developer accidentally hardcoding a secret:
+
+```javascript
+// TODO: move this to env vars later
+const DB_PASSWORD = "super_secret_123";
+```
+
+Push the change, let the pipeline run, then check the SonarQube UI.
+
+??? question "Show Answer: What SonarQube flags and how to fix it"
+
+    **What you'll see in SonarQube:**
+
+    SonarQube's built-in rules flag hardcoded credentials as a **Security Hotspot** (rule `javascript:S2068` — *"Hard-coded credentials are security-sensitive"*). The finding will appear under **Projects → kkm-pulse-demo → Security Hotspots**.
+
+    **How to resolve it properly:**
+
+    1. Delete the hardcoded line from `server.js`.
+    2. Read the value from an environment variable instead:
+
+    ```javascript
+    const DB_PASSWORD = process.env.DB_PASSWORD;
+    ```
+
+    3. In GitLab, add `DB_PASSWORD` as a **masked CI/CD variable** (**Settings → CI/CD → Variables**) so the runner injects it at runtime without it ever appearing in source code or logs.
+
+    4. Push the fix. The next pipeline scan will resolve the hotspot automatically and your Quality Gate should return to green.
+
+    **Key takeaway:** SonarQube doesn't just count bugs — it surfaces security-sensitive patterns that code reviewers commonly miss. Pair it with a strict Quality Gate (no new hotspots unreviewed) to catch these before they reach `main`.
+
+---
 
 <div class="grid cards" markdown>
 - [Continue to Use Case 3 — Docker Build & Deploy to K8s :octicons-arrow-right-24:](usecase3-deployk8s.md)

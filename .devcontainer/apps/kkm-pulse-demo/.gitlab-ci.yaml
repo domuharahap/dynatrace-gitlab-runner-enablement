@@ -32,7 +32,7 @@ build-job:
   tags:
     - shell
   script:
-    - npm ci
+    - npm install
   artifacts:
     paths:
       - node_modules/
@@ -50,7 +50,7 @@ test-job:
 # ---------------------------------------------------------------------------
 # code_quality — usecase2-nodejs-sast.md
 # ---------------------------------------------------------------------------
-sonarqube-check:
+.sonarqube-check:
   stage: code_quality
   tags:
     - shell
@@ -75,7 +75,7 @@ sonarqube-check:
 # ---------------------------------------------------------------------------
 # package — usecase3-deployk8s.md
 # ---------------------------------------------------------------------------
-docker-build:
+.docker-build:
   stage: package
   tags:
     - shell
@@ -88,7 +88,7 @@ docker-build:
 # ---------------------------------------------------------------------------
 # deploy_dev — usecase3-deployk8s.md, usecase4-dynatrace.md
 # ---------------------------------------------------------------------------
-deploy-dev:
+.deploy-dev:
   stage: deploy_dev
   tags:
     - shell
@@ -104,7 +104,7 @@ deploy-dev:
     - kubectl rollout status deployment/kkm-pulse-demo -n kkm-pulse-dev --timeout=120s
     - 'curl -sf -H "Host: kkm-pulse-dev.127.0.0.1.sslip.io" http://localhost/api/status'
 
-notify-dynatrace-deploy:
+.notify-dynatrace-deploy:
   stage: deploy_dev
   tags:
     - shell
@@ -155,7 +155,7 @@ load-test:
     reports:
       dotenv: loadtest.env
 
-notify-dynatrace-test-result:
+.notify-dynatrace-test-result:
   stage: load_test
   tags:
     - shell
@@ -179,7 +179,7 @@ notify-dynatrace-test-result:
 # Gated: only offered once notify-dynatrace-test-result has succeeded, and
 # even then requires a human to click "run" (when: manual).
 # ---------------------------------------------------------------------------
-deploy-prod:
+.deploy-prod:
   stage: deploy_prod
   tags:
     - shell
@@ -196,7 +196,7 @@ deploy-prod:
     - kubectl rollout status deployment/kkm-pulse-demo -n kkm-pulse-prod --timeout=120s
     - 'curl -sf -H "Host: kkm-pulse-prod.127.0.0.1.sslip.io" http://localhost/api/status'
 
-notify-dynatrace-prod-deploy:
+.notify-dynatrace-prod-deploy:
   stage: deploy_prod
   tags:
     - shell
